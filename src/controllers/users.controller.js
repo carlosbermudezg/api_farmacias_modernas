@@ -14,19 +14,19 @@ const getOne = catchError(async(req, res)=>{
 
 const login = catchError(async (req, res) => {
     const { email, password } = req.body;
-    const user = await Users.findOne(email);
-    if (!user) return res.status(401).json({ error: "invalid credentials" });
+    const logged = await Users.findOne(email);
+    if (!logged) return res.status(401).json({ error: "invalid credentials" });
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, logged.password);
     if (!isValid) return res.status(401).json({ error: "invalid credentials" });
 
     const token = jwt.sign(
-        { user },
+        { logged },
         process.env.TOKEN,
         { expiresIn: '1d' }
     )
 
-    return res.json({ user, token });
+    return res.json({ logged, token });
 })
 
 module.exports = {

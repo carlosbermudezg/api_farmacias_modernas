@@ -7,9 +7,10 @@ const routerUsers = express.Router();
 routerUsers.route('/')
     .get(verifyJWT, getAll)
 
+routerUsers.route('/login')
+    .post(login)
+
 routerUsers.route('/:id')
     .get(verifyJWT, getOne)
     
-routerUsers.route('/login')
-    .get(login)
 module.exports = routerUsers;
