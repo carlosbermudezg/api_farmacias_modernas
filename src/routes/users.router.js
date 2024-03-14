@@ -1,4 +1,4 @@
-const { getAll, getOne} = require('../controllers/users.controller');
+const { getAll, getOne, login} = require('../controllers/users.controller');
 const express = require('express');
 const verifyJWT = require('../utils/verifyJWT');
 
@@ -9,4 +9,7 @@ routerUsers.route('/')
 
 routerUsers.route('/:id')
     .get(verifyJWT, getOne)
+    
+routerUsers.route('/login')
+    .get(login)
 module.exports = routerUsers;

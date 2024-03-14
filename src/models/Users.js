@@ -12,8 +12,8 @@ const findById = async(id)=>{
     return result
 }
 
-const findByProduct = async(search)=>{
-    const result = await pool.query("SELECT * FROM users WHERE name LIKE ?", '%' + search + '%')
+const findOne = async(username)=>{
+    const result = await pool.query('SELECT * from users WHERE username='+username)
     console.log(result)
     return result
 }
@@ -21,5 +21,5 @@ const findByProduct = async(search)=>{
 module.exports = {
     findAll,
     findById,
-    findByProduct
+    findOne
 }
