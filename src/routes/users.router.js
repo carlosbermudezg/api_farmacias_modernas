@@ -5,12 +5,12 @@ const verifyJWT = require('../utils/verifyJWT');
 const routerUsers = express.Router();
 
 routerUsers.route('/')
-    .get(verifyJWT, getAll)
+    .get(getAll)
 
 routerUsers.route('/login')
     .post(login)
 
 routerUsers.route('/:id')
-    .get(verifyJWT, getOne)
+    .get(getOne)
     
 module.exports = routerUsers;

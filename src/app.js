@@ -3,6 +3,7 @@ const router = require('./routes')
 
 const app = express()
 
+app.use(express.json())
 app.use('/api/v1', router)
 app.get('/', (req, res) => {
     return res.send("Welcome to Api FM");
