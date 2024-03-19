@@ -10,9 +10,27 @@ const getAll = catchError(async(req, res) => {
 
 const getOne = catchError(async(req, res)=>{
     const { id } = req.params
+    const result = await Users.findOne(id)
+    if(result[0][0]) return res.status(401).json({ error: "El usuario ya existe" })
+    return res.status(200).json({ msg: "ok" })
+})
+const getUser = catchError(async(req, res)=>{
+    const { id } = req.params
     const result = await Users.findById(id)
     return res.status(200).json(result[0])
 })
+
+const create = catchError(async(req, res) => {
+    const user = { 
+        "name": req.body.name,
+        "username": req.body.username,
+        "password": await bcrypt.hash(req.body.password, 10),
+        "telefono": req.body.telefono,
+        "type": req.body.type
+    }
+    const result = await Users.create(user);
+    return res.status(201).json(result);
+});
 
 const login = catchError(async (req, res) => {
     const { user, password } = req.body;
@@ -21,6 +39,9 @@ const login = catchError(async (req, res) => {
 
     const isValid = await bcrypt.compare(password, logged[0][0].password);
     if (!isValid) return res.status(401).json({ error: "invalid credentials pass" });
+
+    const isPermited = logged[0][0].active === 1
+    if (!isPermited) return res.status(401).json({ error: "Usuario no autorizado. Contacte el administrador" });
 
     const token = jwt.sign(
         { user: logged[0][0] },
@@ -34,5 +55,7 @@ const login = catchError(async (req, res) => {
 module.exports = {
     getAll,
     getOne,
-    login
+    login,
+    create,
+    getUser
 }

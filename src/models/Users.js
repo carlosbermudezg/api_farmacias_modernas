@@ -15,8 +15,16 @@ const findOne = async(username)=>{
     return result
 }
 
+const create = async({name, username, password, type, telefono})=>{
+    const result = await pool.query(
+        `INSERT INTO users(name, username, password, telefono, type) VALUES('${name}','${username}','${password}','${type}','${telefono}')`
+    );
+    return result
+}
+
 module.exports = {
     findAll,
     findById,
-    findOne
+    findOne,
+    create
 }
