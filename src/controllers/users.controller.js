@@ -1,5 +1,6 @@
 const catchError = require('../utils/catchError');
 const Users = require('../models/Users');
+const Chat = require('../models/Chat');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -21,7 +22,7 @@ const getUser = catchError(async(req, res)=>{
 })
 
 const create = catchError(async(req, res) => {
-    const user = { 
+    const user = {
         "name": req.body.name,
         "username": req.body.username,
         "password": await bcrypt.hash(req.body.password, 10),
@@ -29,19 +30,23 @@ const create = catchError(async(req, res) => {
         "type": req.body.type
     }
     const result = await Users.create(user);
+    const idUserRegistered = result[0].insertId
+    const data = "1,"+idUserRegistered+""
+    const resultChat = await Chat.create(data)
+    console.log(resultChat)
     return res.status(201).json(result);
 });
 
 const login = catchError(async (req, res) => {
-    const { user, password } = req.body;
-    const logged = await Users.findOne(user);
-    if (!logged[0][0]) return res.status(401).json({ error: "invalid credentials user" });
+    const { user, password } = req.body
+    const logged = await Users.findOne(user)
+    if (!logged[0][0]) return res.status(401).json({ error: "invalid credentials user" })
 
-    const isValid = await bcrypt.compare(password, logged[0][0].password);
-    if (!isValid) return res.status(401).json({ error: "invalid credentials pass" });
+    const isValid = await bcrypt.compare(password, logged[0][0].password)
+    if (!isValid) return res.status(401).json({ error: "invalid credentials pass" })
 
     const isPermited = logged[0][0].active === 1
-    if (!isPermited) return res.status(401).json({ error: "Usuario no autorizado. Contacte el administrador" });
+    if (!isPermited) return res.status(401).json({ error: "Usuario no autorizado. Contacte el administrador" })
 
     const token = jwt.sign(
         { user: logged[0][0] },

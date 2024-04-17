@@ -1,8 +1,8 @@
 const express = require('express')
 const router = require('./routes')
-const helmet = require('helmet');
-const cors = require('cors');
-const path = require('path');
+const helmet = require('helmet')
+const cors = require('cors')
+const path = require('path')
 
 const app = express()
 
