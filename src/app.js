@@ -6,11 +6,11 @@ const path = require('path')
 
 const app = express()
 
-app.use(express.json());
+app.use(express.json())
 app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
-app.use(cors());
+app.use(cors())
 app.use(express.static(path.join(__dirname, 'public'))); 
 app.use('/api/v1', router)
 app.get('/', (req, res) => {

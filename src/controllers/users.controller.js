@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const getAll = catchError(async(req, res) => {
     const results = await Users.findAll();
     return res.status(200).json(results[0]);
-});
+})
 
 const getOne = catchError(async(req, res)=>{
     const { id } = req.params
@@ -15,9 +15,24 @@ const getOne = catchError(async(req, res)=>{
     if(result[0][0]) return res.status(401).json({ error: "El usuario ya existe" })
     return res.status(200).json({ msg: "ok" })
 })
+
 const getUser = catchError(async(req, res)=>{
     const { id } = req.params
     const result = await Users.findById(id)
+    return res.status(200).json(result[0])
+})
+
+const getSearch = catchError(async(req, res)=>{
+    const { search } = req.query
+    const results = await Users.findByUserSearch(search)
+    return res.status(200).json({
+        data: results[0],
+    })
+})
+
+const changeStatus = catchError(async(req, res)=>{
+    const { id, state } = req.query
+    const result = await Users.changeStatus(id, state)
     return res.status(200).json(result[0])
 })
 
@@ -27,6 +42,7 @@ const create = catchError(async(req, res) => {
         "username": req.body.username,
         "password": await bcrypt.hash(req.body.password, 10),
         "telefono": req.body.telefono,
+        "direccion": req.body.direccion,
         "type": req.body.type
     }
     const result = await Users.create(user);
@@ -34,8 +50,14 @@ const create = catchError(async(req, res) => {
     const data = "1,"+idUserRegistered+""
     const resultChat = await Chat.create(data)
     console.log(resultChat)
-    return res.status(201).json(result);
-});
+    return res.status(201).json(result)
+})
+
+const update = catchError(async(req, res)=>{
+    const data = req.body
+    const result = await Users.update(data)
+    return res.status(200).json(result[0])
+})
 
 const login = catchError(async (req, res) => {
     const { user, password } = req.body
@@ -54,7 +76,19 @@ const login = catchError(async (req, res) => {
         { expiresIn: '1d' }
     )
 
-    return res.status(200).json({ user: logged[0][0], token });
+    let admin_token = ''
+
+    const isAdmin = logged[0][0].type === 10
+
+    if(isAdmin){
+        admin_token = jwt.sign(
+            { user: logged[0][0] },
+            process.env.ADMIN_TOKEN,
+            { expiresIn: '1d' }
+        ) 
+    }
+
+    return res.status(200).json({ user: logged[0][0], token, admin_token });
 })
 
 module.exports = {
@@ -62,5 +96,8 @@ module.exports = {
     getOne,
     login,
     create,
-    getUser
+    getUser,
+    changeStatus,
+    getSearch,
+    update
 }

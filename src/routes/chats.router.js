@@ -1,18 +1,24 @@
 const { getOne, create, update, getMessagesNoRead, updateUnReadMessage } = require('../controllers/chats.controller');
 const express = require('express');
-const verifyJWT = require('../utils/verifyJWT');
+const { verifyJWT, verifyAdminJWT } = require('../utils/verifyJWT');
 
-const routerChat = express.Router();
+const routerChat = express.Router()
 routerChat.route('/')
-    .get(getOne)
+    .get(verifyAdminJWT, getOne)
+
 routerChat.route('/getMessagesNoRead/:id')
-    .get(getMessagesNoRead)
+    .get(verifyJWT, getMessagesNoRead)
+
 routerChat.route('/updateMessage/:id')
-    .get(updateUnReadMessage)
+    .get(verifyJWT, updateUnReadMessage)
+
 routerChat.route('/addchat')
-    .post(create)
+    .post(verifyJWT, create)
+
 routerChat.route('/updatechat')
-    .post(update)
+    .post(verifyJWT, update)
+    
 routerChat.route('/:id')
-    .get(getOne)
+    .get(verifyJWT, getOne)
+
 module.exports = routerChat;

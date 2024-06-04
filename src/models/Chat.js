@@ -78,7 +78,7 @@ const update = async(chat)=>{
     const content = JSON.stringify(chat.content)
     const result = await pool.query(
         `UPDATE chats SET content='${content}' WHERE idchats=${chat.idchats}`
-    );
+    )
     return result
 }
 

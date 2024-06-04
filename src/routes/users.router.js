@@ -1,23 +1,27 @@
-const { getAll, getOne, login, create, getUser} = require('../controllers/users.controller');
+const { getAll, getOne, login, create, getUser, changeStatus, getSearch, update} = require('../controllers/users.controller');
 const express = require('express');
-const verifyJWT = require('../utils/verifyJWT');
+const { verifyJWT, verifyAdminJWT } = require('../utils/verifyJWT');
 
 const routerUsers = express.Router();
 
 routerUsers.route('/')
-    .get(getAll)
+    .get(verifyAdminJWT, getAll)
+    .post(verifyJWT, create)
+    .put(verifyAdminJWT, update)
+
+routerUsers.route('/usersBySearch')
+    .get(verifyJWT, getSearch)
 
 routerUsers.route('/login')
     .post(login)
 
-routerUsers.route('/adduser')
-    .post(create)
-
 routerUsers.route('/one/:id')
-    .get(getUser)
+    .get(verifyJWT, getUser)
+
+routerUsers.route('/changeStatus')
+    .get(verifyAdminJWT, changeStatus)
 
 routerUsers.route('/:id')
-    .get(getOne)
-
+    .get(verifyJWT, getOne)
     
 module.exports = routerUsers;
