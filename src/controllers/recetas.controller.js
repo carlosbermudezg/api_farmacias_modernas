@@ -15,7 +15,7 @@ const getAll = catchError(async(req, res) => {
             page: +page,
             limit: +limit,
             totalPages: totalPages,
-            totalProducts: totalPagesData[0][0]?.count
+            totalRecetas: totalPagesData[0][0]?.count
         }
     })
 })

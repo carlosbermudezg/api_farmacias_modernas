@@ -6,7 +6,7 @@ const routerUsers = express.Router();
 
 routerUsers.route('/')
     .get(verifyAdminJWT, getAll)
-    .post(verifyJWT, create)
+    .post(create)
     .put(verifyAdminJWT, update)
 
 routerUsers.route('/usersBySearch')

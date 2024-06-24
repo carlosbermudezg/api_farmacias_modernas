@@ -5,15 +5,27 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const getAll = catchError(async(req, res) => {
-    const results = await Users.findAll();
-    return res.status(200).json(results[0]);
+    const { page, limit } = req.query
+    const offset = (page - 1) * limit
+    const results = await Users.findAll(limit, offset)
+    const totalPagesData = await Users.countUsers()
+    const totalPages = Math.ceil(totalPagesData[0][0]?.count / limit)
+    return res.status(200).json({
+        data: results[0],
+        pagination: {
+            page: +page,
+            limit: +limit,
+            totalPages: totalPages,
+            totalUsers: totalPagesData[0][0]?.count
+        }
+    })
 })
 
 const getOne = catchError(async(req, res)=>{
     const { id } = req.params
     const result = await Users.findOne(id)
-    if(result[0][0]) return res.status(401).json({ error: "El usuario ya existe" })
-    return res.status(200).json({ msg: "ok" })
+    if(result[0][0]) return res.status(401).json({ error: false })
+    return res.status(200).json({ msg: true })
 })
 
 const getUser = catchError(async(req, res)=>{
@@ -43,9 +55,12 @@ const create = catchError(async(req, res) => {
         "password": await bcrypt.hash(req.body.password, 10),
         "telefono": req.body.telefono,
         "direccion": req.body.direccion,
-        "type": req.body.type
+        "type": req.body.type,
+        "brands": req.body.brands,
+        "zones": req.body.zones
     }
-    const result = await Users.create(user);
+    const result = await Users.create(user)
+    if(!result) return res.status(401).json({error: 'El usuario ya existe'})
     const idUserRegistered = result[0].insertId
     const data = "1,"+idUserRegistered+""
     const resultChat = await Chat.create(data)
@@ -73,7 +88,7 @@ const login = catchError(async (req, res) => {
     const token = jwt.sign(
         { user: logged[0][0] },
         process.env.TOKEN,
-        { expiresIn: '1d' }
+        { expiresIn: '7d' }
     )
 
     let admin_token = ''
@@ -84,7 +99,7 @@ const login = catchError(async (req, res) => {
         admin_token = jwt.sign(
             { user: logged[0][0] },
             process.env.ADMIN_TOKEN,
-            { expiresIn: '1d' }
+            { expiresIn: '7d' }
         ) 
     }
 
