@@ -9,6 +9,10 @@ const findById = async(id)=>{
     const result = await pool.query('SELECT * from zones WHERE idzonas="'+id+'"')
     return result
 }
+const getAllMyZones = async(zones)=>{
+    const result = await pool.query('SELECT * from zones WHERE idzonas IN ' + zones)
+    return result
+}
 
 const create = async({name})=>{
     const result = await pool.query(
@@ -28,5 +32,6 @@ module.exports = {
     findAll,
     findById,
     create,
-    update
+    update,
+    getAllMyZones
 }

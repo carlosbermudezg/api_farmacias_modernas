@@ -34,6 +34,11 @@ const getUser = catchError(async(req, res)=>{
     return res.status(200).json(result[0])
 })
 
+const getDoctors = catchError(async(req, res)=>{
+    const result = await Users.findDoctors()
+    return res.status(200).json(result[0])
+})
+
 const getSearch = catchError(async(req, res)=>{
     const { search } = req.query
     const results = await Users.findByUserSearch(search)
@@ -55,6 +60,7 @@ const create = catchError(async(req, res) => {
         "password": await bcrypt.hash(req.body.password, 10),
         "telefono": req.body.telefono,
         "direccion": req.body.direccion,
+        "residencia": req.body.ciudad,
         "type": req.body.type,
         "brands": req.body.brands,
         "zones": req.body.zones
@@ -69,7 +75,7 @@ const create = catchError(async(req, res) => {
 })
 
 const update = catchError(async(req, res)=>{
-    const data = req.body
+    const { id, state } = req.query
     const result = await Users.update(data)
     return res.status(200).json(result[0])
 })
@@ -84,11 +90,13 @@ const login = catchError(async (req, res) => {
 
     const isPermited = logged[0][0].active === 1
     if (!isPermited) return res.status(401).json({ error: "Usuario no autorizado. Contacte el administrador" })
+    
+    delete logged[0][0].password
 
     const token = jwt.sign(
         { user: logged[0][0] },
         process.env.TOKEN,
-        { expiresIn: '7d' }
+        { expiresIn: '1h' }
     )
 
     let admin_token = ''
@@ -99,11 +107,31 @@ const login = catchError(async (req, res) => {
         admin_token = jwt.sign(
             { user: logged[0][0] },
             process.env.ADMIN_TOKEN,
-            { expiresIn: '7d' }
+            { expiresIn: '1h' }
         ) 
     }
 
     return res.status(200).json({ user: logged[0][0], token, admin_token });
+})
+
+const validateToken = catchError(async(req, res)=>{
+    const { token } = req.query
+
+    // La clave secreta que se usó para firmar el token
+    const secretKey = process.env.TOKEN;
+
+    // Validar el token
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            // Si el token no es válido o ha expirado
+            console.log("Token no válido o expirado:", err.message);
+            return res.status(200).json({ isValid : false})
+        } else {
+            // Si el token es válido
+            console.log("Token válido. Datos decodificados:", decoded);
+            return res.status(200).json({ isValid : true})
+        }
+    });
 })
 
 module.exports = {
@@ -114,5 +142,7 @@ module.exports = {
     getUser,
     changeStatus,
     getSearch,
-    update
+    getDoctors,
+    update,
+    validateToken
 }

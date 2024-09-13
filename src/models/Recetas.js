@@ -9,6 +9,11 @@ const allRecetasPaginationUser = async(id, limit, offset, month, year)=>{
     return result
 }
 
+const allRecetasByUser = async(id, year)=>{
+    const result = await pool.query(`SELECT * FROM recetas WHERE iduser = ? AND fechaHora LIKE ?`, [id, `%${year}%`])
+    return result
+}
+
 const countRecetas = async()=>{
     const result = await pool.query('SELECT count(*) as count from recetas');
     return result
@@ -18,8 +23,12 @@ const countRecetasByMonth = async(month, year)=>{
     const result = await pool.query("SELECT count(*) as count from recetas WHERE fechaHora LIKE '%"+year+'-'+month+"%'");
     return result
 }
-const countRecetasByMonthUser = async(month, year, id)=>{
-    const result = await pool.query("SELECT count(*) as count from recetas WHERE iduser='"+id+"' AND fechaHora LIKE '%"+year+'-'+month+"%'");
+const countRecetasByUser = async(id, month, year)=>{
+    const result = await pool.query("SELECT count(*) as count from recetas WHERE iduser = ? AND fechaHora LIKE ?", [id, `%${year}-${month}%`]);
+    return result
+}
+const countRecetasByMonthUser = async(year, id)=>{
+    const result = await pool.query("SELECT YEAR(fechaHora) AS year, MONTH(fechaHora) AS month, COUNT(*) AS count from recetas WHERE iduser=? AND YEAR(fechaHora)=? GROUP BY YEAR(fechaHora), MONTH(fechaHora)", [id, year]);
     return result
 }
 
@@ -40,9 +49,9 @@ const findById = async(id)=>{
     return result
 }
 
-const create = async({iduser, idusercreate, numReceta, fechaHora, image, medicamentos})=>{
+const create = async({iduser, idusercreate, numReceta, fechaHora, image, medicamentos, payStatus})=>{
     const result = await pool.query(
-        `INSERT INTO recetas(iduser, idusercreate, numReceta, fechaHora, image, medicamentos) VALUES('${iduser}','${idusercreate}','${numReceta}','${fechaHora}','${image}','${medicamentos}')`
+        `INSERT INTO recetas(iduser, idusercreate, numReceta, fechaHora, image, medicamentos, payStatus) VALUES('${iduser}','${idusercreate}','${numReceta}','${fechaHora}','${image}','${medicamentos}',${payStatus})`
     );
     return result
 }
@@ -59,6 +68,13 @@ const update = async(receta)=>{
     return result
 }
 
+const updatePayStatus = async(ids)=>{
+    const result = await pool.query(
+        `UPDATE recetas SET payStatus=1 WHERE idrecetas IN ${ids}`
+    )
+    return result
+}
+
 module.exports = {
     allRecetasPagination,
     allRecetasPaginationUser,
@@ -68,5 +84,8 @@ module.exports = {
     findById,
     create,
     update,
-    countRecetasByMonth
+    countRecetasByMonth,
+    countRecetasByUser,
+    updatePayStatus,
+    allRecetasByUser
 }

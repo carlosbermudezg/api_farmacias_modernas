@@ -25,7 +25,8 @@ const getByUser = catchError(async(req, res) => {
     const { id } = req.params
     const offset = (page - 1) * limit
     const results = await Recetas.allRecetasPaginationUser(id, limit, offset, month, year)
-    const totalPagesData = await Recetas.countRecetasByMonthUser(id, month, year)
+    console.log([id, month, year])
+    const totalPagesData = await Recetas.countRecetasByUser(id, month, year)
     const totalPages = Math.ceil(totalPagesData[0][0]?.count / limit)
     console.log(totalPages)
 
@@ -33,11 +34,18 @@ const getByUser = catchError(async(req, res) => {
         data: results[0],
         pagination: {
             page: +page,
-            limit: +limit,
             totalPages: totalPages,
-            totalProducts: totalPagesData[0][0]?.count
+            totalRecetas: totalPagesData[0][0]?.count
         }
     })
+})
+
+const getAllByUser = catchError(async(req, res) => {
+    const { year } = req.query
+    const { id } = req.params
+    const results = await Recetas.allRecetasByUser(id, year)
+
+    return res.status(200).json(results[0])
 })
 
 // const getAll = catchError(async(req, res) => {
@@ -53,7 +61,7 @@ const getByMonth = catchError(async(req, res)=>{
 
 const getByMonthUser = catchError(async(req, res)=>{
     const { month, year, id } = req.query
-    const result = await Recetas.countRecetasByMonthUser(month, year, id)
+    const result = await Recetas.countRecetasByMonthUser(year, id)
     return res.status(200).json(result[0])
 })
 
@@ -70,7 +78,8 @@ const create = catchError(async(req, res) => {
         "numReceta": req.body.numReceta,
         "fechaHora": req.body.fechaHora,
         "image": req.body.image,
-        "medicamentos": JSON.stringify(req.body.medicamentos)
+        "medicamentos": JSON.stringify(req.body.medicamentos),
+        "payStatus": 0
     }
     const result = await Recetas.create(receta)
     return res.status(201).json(result);
@@ -88,6 +97,11 @@ const update = catchError(async(req, res) => {
     const result = await Recetas.update(receta);
     return res.status(201).json(result);
 })
+const updatePayment = catchError(async(req, res) => {
+    const ids = req.body.ids
+    const result = await Recetas.updatePayStatus(ids)
+    return res.status(201).json(result)
+})
 
 module.exports = {
     getAll,
@@ -96,5 +110,7 @@ module.exports = {
     update,
     getByUser,
     getByMonth,
-    getByMonthUser
+    getByMonthUser,
+    updatePayment,
+    getAllByUser
 }

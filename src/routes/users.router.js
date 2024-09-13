@@ -1,4 +1,4 @@
-const { getAll, getOne, login, create, getUser, changeStatus, getSearch, update} = require('../controllers/users.controller');
+const { getAll, getOne, login, create, getUser, changeStatus, getSearch, getDoctors, update, validateToken} = require('../controllers/users.controller');
 const express = require('express');
 const { verifyJWT, verifyAdminJWT } = require('../utils/verifyJWT');
 
@@ -8,6 +8,12 @@ routerUsers.route('/')
     .get(verifyAdminJWT, getAll)
     .post(create)
     .put(verifyAdminJWT, update)
+
+routerUsers.route('/doctors')
+    .get(verifyJWT, getDoctors)
+
+routerUsers.route('/validateToken')
+    .get(validateToken)
 
 routerUsers.route('/usersBySearch')
     .get(verifyJWT, getSearch)

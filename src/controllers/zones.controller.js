@@ -12,6 +12,12 @@ const getById = catchError(async(req, res)=>{
     return res.status(200).json(result[0])
 })
 
+const getMyZones = catchError(async(req, res)=>{
+    const { zones } = req.query
+    const result = await Zones.getAllMyZones(zones)
+    return res.status(200).json(result[0])
+})
+
 const create = catchError(async(req, res) => {
     const zone = {
         "name": req.body.name,
@@ -30,5 +36,6 @@ module.exports = {
     getAll,
     getById,
     create,
-    update
+    update,
+    getMyZones
 }
