@@ -1,13 +1,13 @@
 const pool = require('../utils/connMySql2');
 const { sendMail } = require('../utils/sendMail');
 
-const findAll = async(limit, offset)=>{
-    const result = await pool.query('SELECT idusers, name, username, type, active, telefono, direccion, residencia, zones, brands from users limit ? offset ?',[+limit, +offset]);
+const findAll = async(limit, offset, search)=>{
+    const result = await pool.query('SELECT idusers, name, username, type, active, telefono, direccion, residencia, zones, brands from users WHERE name LIKE ? OR username LIKE ? limit ? offset ?',[`%${search}%`, `%${search}%`, +limit, +offset]);
     return result
 }
 
-const countUsers = async()=>{
-    const result = await pool.query('SELECT count(*) as count from users');
+const countUsers = async(search)=>{
+    const result = await pool.query('SELECT count(*) as count from users WHERE name LIKE ? OR username LIKE ?', [`%${search}%`, `%${search}%`]);
     return result
 }
 
@@ -44,7 +44,7 @@ const create = async({name, username, password, type, telefono, direccion, resid
     console.log(review[0][0])
     if(review[0][0] === undefined){
         const result = await pool.query(
-            `INSERT INTO users(name, username, password, telefono, direccion, residencia, type, zones, brands) VALUES('${name}','${username}','${password}','${telefono}','${direccion}','${residencia}}','${type}','${zones}','${brands}')`
+            `INSERT INTO users(name, username, password, telefono, direccion, residencia, type, zones, brands) VALUES('${name}','${username}','${password}','${telefono}','${direccion}','${residencia}','${type}','${zones}','${brands}')`
         )
         const data = {
             destiny: username

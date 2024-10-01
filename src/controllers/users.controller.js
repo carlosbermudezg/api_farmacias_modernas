@@ -5,10 +5,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const getAll = catchError(async(req, res) => {
-    const { page, limit } = req.query
+    const { page, limit, search } = req.query
     const offset = (page - 1) * limit
-    const results = await Users.findAll(limit, offset)
-    const totalPagesData = await Users.countUsers()
+    const results = await Users.findAll(limit, offset, search)
+    const totalPagesData = await Users.countUsers(search)
     const totalPages = Math.ceil(totalPagesData[0][0]?.count / limit)
     return res.status(200).json({
         data: results[0],
@@ -26,6 +26,13 @@ const getOne = catchError(async(req, res)=>{
     const result = await Users.findOne(id)
     if(result[0][0]) return res.status(401).json({ error: false })
     return res.status(200).json({ msg: true })
+})
+
+const getByUsername = catchError(async(req, res)=>{
+    const { username } = req.query
+    const result = await Users.findOne(username)
+    if(result[0][0]) return res.status(200).json({ response: true })
+    return res.status(200).json({ response: false })
 })
 
 const getUser = catchError(async(req, res)=>{
@@ -144,5 +151,6 @@ module.exports = {
     getSearch,
     getDoctors,
     update,
-    validateToken
+    validateToken,
+    getByUsername
 }
