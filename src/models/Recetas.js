@@ -27,10 +27,38 @@ const countRecetasByUser = async(id, month, year)=>{
     const result = await pool.query("SELECT count(*) as count from recetas WHERE iduser = ? AND fechaHora LIKE ?", [id, `%${year}-${month}%`]);
     return result
 }
-const countRecetasByMonthUser = async(year, id)=>{
-    const result = await pool.query("SELECT YEAR(fechaHora) AS year, MONTH(fechaHora) AS month, COUNT(*) AS count from recetas WHERE iduser=? AND YEAR(fechaHora)=? GROUP BY YEAR(fechaHora), MONTH(fechaHora)", [id, year]);
-    return result
-}
+const countRecetasByMonthUser = async (year, id) => {
+    const result = await pool.query(`
+      SELECT 
+        YEAR(r.fechaHora) AS year, 
+        MONTH(r.fechaHora) AS month, 
+        COUNT(*) AS count, 
+        JSON_ARRAYAGG(JSON_OBJECT(
+          'idReceta', r.idrecetas,
+          'idUser', r.iduser,
+          'userCreate', r.idusercreate,
+          'date', r.fechaHora,
+          'userCreateName', u.name,   -- Nombre del usuario que creó la receta
+          'recetaNum', r.numReceta,
+          'image', r.image,
+          'medicamentos', r.medicamentos,
+          'pay', r.payStatus
+        )) AS recetas
+      FROM recetas r
+      JOIN users u ON r.idusercreate = u.idusers  -- Join con la tabla usuarios
+      WHERE r.iduser = ? 
+        AND YEAR(r.fechaHora) = ? 
+      GROUP BY YEAR(r.fechaHora), MONTH(r.fechaHora)
+    `, [id, year]);
+    
+    return result;
+};
+  
+  
+// const countRecetasByMonthUser = async(year, id)=>{
+//     const result = await pool.query("SELECT YEAR(fechaHora) AS year, MONTH(fechaHora) AS month, COUNT(*) AS count from recetas WHERE iduser=? AND YEAR(fechaHora)=? GROUP BY YEAR(fechaHora), MONTH(fechaHora)", [id, year]);
+//     return result
+// }
 
 // const findByUserSearch = async(limit, offset, search)=>{
 //     const result = await pool.query("SELECT * FROM recetas WHERE PRODUCTO LIKE '%"+search+"%' limit "+limit+" offset " +offset)

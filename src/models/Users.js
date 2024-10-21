@@ -46,10 +46,39 @@ const create = async({name, username, password, type, telefono, direccion, resid
         const result = await pool.query(
             `INSERT INTO users(name, username, password, telefono, direccion, residencia, type, zones, brands) VALUES('${name}','${username}','${password}','${telefono}','${direccion}','${residencia}','${type}','${zones}','${brands}')`
         )
+        const userType = type == "1" ? "Médico" : "Visitador Médico"
         const data = {
-            destiny: username
+            to : "ceofarmaciaslopez@gmail.com",
+            subject : `Nuevo ${userType} registrado`,
+            html : `
+                    <p>Datos del usuario:</p>
+                    <p>${userType}</p>
+                    <p>${name}</p>
+                    <p>${username}</p>
+                    <p>${telefono}</p>
+                `
         }
-        sendMail()
+        const dataPrueba = {
+            to : "cbermudezg7@gmail.com",
+            subject : `Nuevo ${userType} registrado`,
+            html : `
+                    <p>Datos del usuario:</p>
+                    <p>${userType}</p>
+                    <p>${name}</p>
+                    <p>${username}</p>
+                    <p>${telefono}</p>
+                `
+        }
+        const dataUser = {
+            to : username,
+            subject : `Bienvenido a Farmacias Modernas`,
+            html : `
+                    <p>Se ha registrado con éxito en la plataforma de Farmacias Modernas, espere la confirmación del Administrador.</p>
+                `
+        }
+        sendMail(data)
+        sendMail(dataPrueba)
+        sendMail(dataUser)
         return result
     }else{
         return false

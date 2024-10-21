@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
 
-const sendMail = ()=>{
+const sendMail = (data)=>{
     // Configura el transporte de nodemailer
     const transporter = nodemailer.createTransport({
         host: 'mail.esys-ec.misitio.xyz', // tu servidor SMTP
@@ -18,10 +18,10 @@ const sendMail = ()=>{
     
     // Define las opciones del correo
     const mailOptions = {
-    from: 'apisystem@farmaciaslopez.com', // remitente
-    to: 'prueba@esys-ec.misitio.xyz', // destinatario
-    subject: 'Api System: Nuevo Usuario registrado',
-    html: '<p>Un nuevo usuario se ha registrado en la plataforma</p>'
+        from: 'info@farmaciaslopez.com', // remitente
+        to: data.to, // destinatario
+        subject: data.subject,
+        html: data.html
     }
     
     // Envía el correo

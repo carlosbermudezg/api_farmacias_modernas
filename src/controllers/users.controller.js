@@ -74,10 +74,10 @@ const create = catchError(async(req, res) => {
     }
     const result = await Users.create(user)
     if(!result) return res.status(401).json({error: 'El usuario ya existe'})
-    const idUserRegistered = result[0].insertId
-    const data = "1,"+idUserRegistered+""
-    const resultChat = await Chat.create(data)
-    console.log(resultChat)
+    // const idUserRegistered = result[0].insertId
+    // const data = "1,"+idUserRegistered+""
+    // const resultChat = await Chat.create(data)
+    // console.log(resultChat)
     return res.status(201).json(result)
 })
 
