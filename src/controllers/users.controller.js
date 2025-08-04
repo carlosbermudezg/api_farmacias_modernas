@@ -4,6 +4,38 @@ const Chat = require('../models/Chat');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
+const getAllCursor = catchError(async (req, res) => {
+    const { limit = 10, cursorDate = null, cursorId = null, search = '' } = req.query;
+
+    // Llamar a la función para obtener los resultados
+    const results = await Users.findAllCursor(limit, cursorDate, cursorId, search);
+
+    // Si no hay resultados, regresar una respuesta vacía
+    if (results.length === 0) {
+        return res.status(200).json({
+            data: [],
+            pagination: {
+                limit: +limit,
+                nextCursor: null,
+                hasMore: false
+            }
+        });
+    }
+
+    // Nuevo cursor para la siguiente página
+    const newCursorDate = results[results.length - 1].last_message_date;
+    const newCursorId = results[results.length - 1].idusers;
+
+    return res.status(200).json({
+        data: results,
+        pagination: {
+            limit: +limit,
+            nextCursor: newCursorDate && newCursorId ? { date: newCursorDate, id: newCursorId } : null,
+            hasMore: results.length === +limit
+        }
+    });
+}); 
+
 const getAll = catchError(async(req, res) => {
     const { page, limit, search } = req.query
     const offset = (page - 1) * limit
@@ -46,6 +78,12 @@ const getDoctors = catchError(async(req, res)=>{
     return res.status(200).json(result[0])
 })
 
+const getDoctorsByZone = catchError(async(req, res)=>{
+    const { zones } = req.query
+    const result = await Users.findDoctorsByZone(zones)
+    return res.status(200).json(result[0])
+})
+
 const getSearch = catchError(async(req, res)=>{
     const { search } = req.query
     const results = await Users.findByUserSearch(search)
@@ -82,7 +120,7 @@ const create = catchError(async(req, res) => {
 })
 
 const update = catchError(async(req, res)=>{
-    const { id, state } = req.query
+    const data = req.body
     const result = await Users.update(data)
     return res.status(200).json(result[0])
 })
@@ -106,43 +144,12 @@ const login = catchError(async (req, res) => {
         { expiresIn: '1h' }
     )
 
-    let admin_token = ''
-
-    const isAdmin = logged[0][0].type === 10
-
-    if(isAdmin){
-        admin_token = jwt.sign(
-            { user: logged[0][0] },
-            process.env.ADMIN_TOKEN,
-            { expiresIn: '1h' }
-        ) 
-    }
-
-    return res.status(200).json({ user: logged[0][0], token, admin_token });
-})
-
-const validateToken = catchError(async(req, res)=>{
-    const { token } = req.query
-
-    // La clave secreta que se usó para firmar el token
-    const secretKey = process.env.TOKEN;
-
-    // Validar el token
-    jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-            // Si el token no es válido o ha expirado
-            console.log("Token no válido o expirado:", err.message);
-            return res.status(200).json({ isValid : false})
-        } else {
-            // Si el token es válido
-            console.log("Token válido. Datos decodificados:", decoded);
-            return res.status(200).json({ isValid : true})
-        }
-    });
+    return res.status(200).json( token );
 })
 
 module.exports = {
     getAll,
+    getAllCursor,
     getOne,
     login,
     create,
@@ -150,7 +157,7 @@ module.exports = {
     changeStatus,
     getSearch,
     getDoctors,
+    getDoctorsByZone,
     update,
-    validateToken,
     getByUsername
 }

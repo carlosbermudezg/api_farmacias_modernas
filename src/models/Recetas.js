@@ -1,4 +1,4 @@
-const pool = require('../utils/connMySql2')
+const { pool } = require('../utils/connMySql2')
 
 const allRecetasPagination = async(limit, offset)=>{
     const result = await pool.query('SELECT * from recetas limit ? offset ?', [+limit, +offset]);

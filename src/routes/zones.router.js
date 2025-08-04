@@ -1,13 +1,13 @@
 const { getAll, getById, create, update, getMyZones} = require('../controllers/zones.controller')
 const express = require('express')
-const { verifyJWT, verifyAdminJWT } = require('../utils/verifyJWT')
+const { verifyJWT } = require('../utils/verifyJWT')
 
 const routerZones = express.Router()
 
 routerZones.route('/')
     .get(getAll)
-    .post(verifyAdminJWT, create)
-    .put(verifyAdminJWT, update)
+    .post(verifyJWT, create)
+    .put(verifyJWT, update)
 
 routerZones.route('/getMyZones')
     .get(verifyJWT, getMyZones)

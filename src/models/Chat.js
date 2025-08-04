@@ -1,97 +1,75 @@
-const pool = require('../utils/connMySql2')
+const { pool } = require('../utils/connMySql2')
 
-const findById = async(id)=>{
-    const result = await pool.query('SELECT * from chats WHERE usersId LIKE "%'+id+'%" ORDER BY idchats')
-    let response = []
-    const query = await Promise.all(
-        result[0].map(async(element)=>{
-            let users = element.usersId.split(',')
-            const userIdFind = users.find( user => user != id )
-            const resultUser = await pool.query('SELECT name from users WHERE idusers='+userIdFind)
-            const messages = await pool.query('SELECT * from messages WHERE idchat='+element.idchats)
-            element.user = resultUser[0][0]
-            if(messages[0][0] === undefined){
-                element.messages = []
-            }else{
-                element.messages = [messages[0]]
-            }
-            response.push( element )
-        })
-    )
-    return response
-}
+// Obtener mensajes con paginación por clave
+const getMessages = async (userId, cursor, limit = 10) => {
+    let query = `
+      SELECT * FROM messages
+      WHERE (sender_id = ? OR receiver_id = ?)
+    `;
+    const values = [userId, userId];
+  
+    if (cursor) {
+      query += ' AND id < ?';
+      values.push(cursor);
+    }
+  
+    query += ' ORDER BY created_at DESC LIMIT ?';
+    values.push(limit);
+  
+    const [rows] = await pool.query(query, values);
+    return rows;
+};  
 
-const findOne = async(idchats, userId)=>{
-    const result = await pool.query('SELECT usersId from chats WHERE idchats='+idchats)
-    let users = result[0][0].usersId.split(',')
-    const userIdFind = users.find( user => user != userId )
-    return userIdFind
-}
-
-const findMessagesNoRead = async(idchat)=>{
-    const result = await pool.query(`SELECT * from messages WHERE idchat='${idchat}' AND chatRead=0 ORDER BY idmessages desc limit 5 `)
-    return result
-}
-
-const create = async(usersId)=>{
-    const result = await pool.query(
-        `INSERT INTO chats(usersId) VALUES('${usersId}')`
+// Crear nuevo mensaje
+const createMessage = async ({ receiver_id, sender_id, content }) => {
+    const [result] = await pool.query(
+      'INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)',
+      [sender_id, receiver_id, content]
     );
-    return result
-}
-
-const createMessage = async(message)=>{
-    const image = JSON.stringify(message.image)
-    const result = await pool.query(
-        `INSERT INTO messages(idchat,userSend,date,content,chatRead,image) VALUES('${message.idchat}','${message.userSend}','${message.date}','${message.content}','${message.read}','${image}')`
+  
+    const [rows] = await pool.query(
+      'SELECT * FROM messages WHERE id = ?',
+      [result.insertId]
     );
-    return result
-}
+  
+    return rows[0];
+};
 
-const updateReadMessage = async(id) => {
-    const result = await pool.query(
-        `UPDATE messages SET chatRead=1 WHERE idmessages=${id}`
+async function createNotification(data) {
+    const [result] = await pool.query(
+      'INSERT INTO notifications (user_id, from_user_id, content) VALUES (?, ?, ?)',
+      [data.user_id, data.from_user_id, data.content]
     );
-    return result
-}
-
-const createSocket = async(idusers, token, socket) => {
-    const result = await pool.query(
-        `INSERT INTO sockets(idsockets, iduser, token) VALUES('${socket}','${idusers}','${token}')`
+  
+    // Si querés devolver el objeto recién creado
+    const [rows] = await pool.query(
+      'SELECT * FROM notifications WHERE id = ?',
+      [result.insertId]
     );
-    return result
-}
+  
+    return rows[0];
+};
 
-const updateSocket = async(idusers, socket) => {
+const getNotifications = async (user_id) => {
     const result = await pool.query(
-        `UPDATE sockets SET idsockets='${socket}' WHERE iduser=${idusers}`
+      `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC`,
+      [user_id]
     );
-    return result
-}
-
-const getSocket = async(id)=>{
-    const result = await pool.query('SELECT idsockets from sockets WHERE iduser='+id)
-    return result[0][0]
-}
-
-const update = async(chat)=>{
-    const content = JSON.stringify(chat.content)
-    const result = await pool.query(
-        `UPDATE chats SET content='${content}' WHERE idchats=${chat.idchats}`
-    )
-    return result
-}
+    return result.rows;
+};
+  
+  const markAsRead = async (notification_id) => {
+    await pool.query(
+      `UPDATE notifications SET is_read = TRUE WHERE id = $1`,
+      [notification_id]
+    );
+};
 
 
 module.exports = {
-    findById,
-    create,
-    update, 
-    findOne,
-    createSocket,
-    getSocket,
-    updateSocket, 
+    getMessages,
     createMessage,
-    findMessagesNoRead,
-    updateReadMessage
+    createNotification,
+    getNotifications,
+    markAsRead
 }

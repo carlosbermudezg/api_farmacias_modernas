@@ -1,7 +1,7 @@
-const pool = require('../utils/connMySql2')
+const { pool } = require('../utils/connMySql2')
 
 const findAll = async()=>{
-    const result = await pool.query('SELECT * from zones');
+    const result = await pool.query('SELECT * from zones ORDER BY name ASC');
     return result
 }
 

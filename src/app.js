@@ -6,7 +6,10 @@ const path = require('path')
 
 const app = express()
 
-app.use(express.json())
+// Aumenta el límite de tamaño del cuerpo de la solicitud
+app.use(express.json({ limit: "10mb" })); // Aumenta el límite a 10MB
+app.use(express.urlencoded({ limit: "10mb", extended: true })); 
+
 app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
